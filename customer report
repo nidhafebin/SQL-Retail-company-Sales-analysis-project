@@ -1,0 +1,87 @@
+-- ========================================
+--  View: customer_and_order_total_details
+-- Description: Aggregates customer metrics and segments by age and behavior
+-- ========================================
+CREATE VIEW customer_and_order_total_details AS
+
+WITH basequery AS (
+    SELECT
+        c.customerkey,
+        c.customer_number,
+        c.customer_id,
+        CONCAT(c.firstname, " ", c.lastname) AS customername,
+        TIMESTAMPDIFF(YEAR, c.birthdate, NOW()) AS age,
+        o.orderdate,
+        o.order_id,
+        o.product,
+        o.category,
+        o.sales_amount,
+        o.quantity,
+        o.order_number,
+        o.product_key
+    FROM
+        mycustomerdata12 c
+    LEFT JOIN
+        myorderdata1 o ON c.customer_id = o.customer_id
+    WHERE
+        orderdate IS NOT NULL
+),
+
+customer_aggregation AS (
+    SELECT
+        customerkey,
+        customer_number,
+        customername,
+        age,
+        SUM(sales_amount) AS totalsales,
+        COUNT(DISTINCT order_id) AS totalorders,
+        SUM(quantity) AS totalquantity,
+        COUNT(DISTINCT product_key) AS totalproducts,
+        MAX(orderdate) AS lastorder,
+        TIMESTAMPDIFF(MONTH, MIN(orderdate), MAX(orderdate)) AS lifespan
+    FROM
+        basequery
+    GROUP BY
+        customerkey, customer_number, customername, age
+)
+
+SELECT
+    customerkey,
+    customer_number,
+    customername,
+    age,
+    
+    --  Age Group Classification
+    CASE
+        WHEN age < 20 THEN "underage"
+        WHEN age BETWEEN 20 AND 29 THEN "20-29"
+        WHEN age BETWEEN 30 AND 39 THEN "30-39"
+        WHEN age BETWEEN 40 AND 49 THEN "40-49"
+        ELSE "50 and above"
+    END AS age_group,
+
+    --  Aggregated Metrics
+    totalsales,
+    totalorders,
+    totalquantity,
+    totalproducts,
+    lastorder,
+    TIMESTAMPDIFF(MONTH, lastorder, NOW()) AS recency,
+    lifespan,
+
+    --  Customer Segmentation
+    CASE
+        WHEN totalsales > 500 AND lifespan > 50 THEN "vip"
+        WHEN totalsales > 500 AND lifespan < 50 THEN "regular"
+        ELSE "new"
+    END AS customersegment,
+
+    --  Value Metrics
+    totalsales / totalorders AS average_order_value,
+    CASE
+        WHEN lifespan = 0 THEN totalsales
+        ELSE totalsales / lifespan
+    END AS average_monthly_spend
+
+FROM
+    customer_aggregation;
