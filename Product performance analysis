@@ -1,0 +1,52 @@
+-- ========================================
+--  Report: Product Performance Analysis
+-- Description: Compare yearly product sales to average and previous year performance
+-- ========================================
+
+-- 🗂️ Use the target database
+USE hey;
+
+-- ========================================
+--  Product Sales Performance by Year
+-- ========================================
+-- This query calculates:
+-- - Total yearly sales per product
+-- - Average sales across years
+-- - Difference from average
+-- - Previous year's sales
+-- - Year-over-year change
+-- - Performance labels (above/below avg, increase/decrease)
+
+SELECT
+    *,
+    ROUND(AVG(totalsale) OVER (PARTITION BY product), 2) AS avgsales,
+    ROUND(totalsale - AVG(totalsale) OVER (PARTITION BY product), 2) AS avgdiff,
+    CASE
+        WHEN totalsale - AVG(totalsale) OVER (PARTITION BY product) > 0 THEN "above avg"
+        WHEN totalsale - AVG(totalsale) OVER (PARTITION BY product) < 0 THEN "below avg"
+        ELSE "avg"
+    END AS avg_change,
+    
+    ROUND(LAG(totalsale) OVER (PARTITION BY product ORDER BY orderyear), 2) AS previousales,
+    ROUND(totalsale - LAG(totalsale) OVER (PARTITION BY product ORDER BY orderyear), 2) AS previouschange,
+    CASE
+        WHEN totalsale - LAG(totalsale) OVER (PARTITION BY product ORDER BY orderyear) > 0 THEN "increase"
+        WHEN totalsale - LAG(totalsale) OVER (PARTITION BY product ORDER BY orderyear) < 0 THEN "decrease"
+        ELSE "no change"
+    END AS previouschange_label
+
+FROM (
+    SELECT
+        YEAR(orderdate) AS orderyear,
+        product,
+        ROUND(SUM(sales_amount), 2) AS totalsale
+    FROM
+        myorderdata1
+    GROUP BY
+        product,
+        YEAR(orderdate)
+) t
+
+ORDER BY
+    product,
+    orderyear;
