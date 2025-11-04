@@ -1,0 +1,39 @@
+-- ========================================
+--  Report: Cumulative Sales Analysis
+-- Description: Monthly total sales, running total, and moving average
+-- ========================================
+
+-- 🗂️ Use the target database
+USE hey;
+
+--  Preview source tables
+SELECT * FROM mycustomerdata;
+SELECT * FROM myorderdata1;
+
+-- ========================================
+--  Cumulative Sales Metrics by Year
+-- ========================================
+-- This query calculates:
+-- - Total sales per year (formatted as start of year)
+-- - Running total of sales over time
+-- - Moving average of average sales
+
+SELECT
+    order_date,
+    total_sales,
+    ROUND(SUM(total_sales) OVER (ORDER BY order_date), 2) AS runningtotal,
+    ROUND(AVG(avgsale) OVER (ORDER BY order_date), 2) AS movingavg
+FROM (
+    SELECT
+        DATE_FORMAT(orderdate, "%y-01-01") AS order_date,
+        ROUND(SUM(sales_amount), 2) AS total_sales,
+        ROUND(AVG(sales_amount), 2) AS avgsale
+    FROM
+        myorderdata1
+    WHERE
+        orderdate IS NOT NULL
+    GROUP BY
+        DATE_FORMAT(orderdate, "%y-01-01")
+    ORDER BY
+        DATE_FORMAT(orderdate, "%y-01-01")
+) t;
