@@ -1,0 +1,39 @@
+-- ========================================
+-- ####Report: Sales Performance Over Time###
+-- Description: Analyze customer orders by year, month, and date
+-- ========================================
+
+# Use the target database
+USE hey;
+
+# Preview source tables
+SELECT * FROM mycustomerdata;
+SELECT * FROM myorderdata1;
+
+-- ========================================
+--  Yearly Sales Performance
+-- ========================================
+SELECT
+    YEAR(orderdate) AS order_year,
+    SUM(sales_amount) AS total_sales,
+    COUNT(DISTINCT customer_id) AS total_customers,
+    SUM(quantity) AS total_quantity
+FROM
+    myorderdata1
+WHERE
+    orderdate IS NOT NULL
+GROUP BY
+    YEAR(orderdate)
+ORDER BY
+    YEAR(orderdate);
+
+-- ========================================
+--  Monthly Sales Performance
+-- ========================================
+SELECT
+    MONTH(orderdate) AS order_month,
+    SUM(sales_amount) AS total_sales,
+    COUNT(DISTINCT customer_id) AS total_customers,
+    SUM(quantity) AS total_quantity
+FROM
+    myorderdata1
