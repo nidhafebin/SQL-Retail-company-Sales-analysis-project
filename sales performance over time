@@ -37,3 +37,27 @@ SELECT
     SUM(quantity) AS total_quantity
 FROM
     myorderdata1
+WHERE
+    orderdate IS NOT NULL
+GROUP BY
+    MONTH(orderdate)
+ORDER BY
+    MONTH(orderdate);
+
+-- ========================================
+--  Date-wise Sales Performance (Year-Month)
+-- ========================================
+SELECT
+    DATE_FORMAT(orderdate, "%y-%m") AS order_date,
+    SUM(sales_amount) AS total_sales,
+    COUNT(DISTINCT customer_id) AS total_customers,
+    SUM(quantity) AS total_quantity
+FROM
+    myorderdata1
+WHERE
+    orderdate IS NOT NULL
+GROUP BY
+    DATE_FORMAT(orderdate, "%y-%m")
+ORDER BY
+    DATE_FORMAT(orderdate, "%y-%m");
+
