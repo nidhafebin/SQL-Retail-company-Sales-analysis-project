@@ -1,0 +1,76 @@
+-- ========================================
+--  Report: Product Segmentation by Sales Amount
+-- Description: Categorize products into 'low', 'medium', and 'high' segments based on sales
+-- ========================================
+
+--  Use the target database
+USE hey;
+
+--  Preview source table
+SELECT * FROM myorderdata1;
+
+--  Count products in each segment
+WITH cte_seg AS (
+    SELECT
+        order_id,
+        CASE
+            WHEN sales_amount < 1000 THEN "low"
+            WHEN sales_amount > 1000 THEN "high"
+            ELSE "medium"
+        END AS segmentation
+    FROM
+        myorderdata1
+)
+SELECT
+    segmentation,
+    COUNT(order_id) AS totalproducts
+FROM
+    cte_seg
+GROUP BY
+    segmentation
+ORDER BY
+    totalproducts DESC;
+
+-- ========================================
+--  Report: Customer Segmentation by Lifetime Value & Activity
+-- Description: Classify customers as 'vip', 'regular', or 'new' based on total sales and activity span
+-- ========================================
+
+--  Preview source table
+SELECT * FROM myorderdata;
+
+-- 🧮 Calculate customer lifetime metrics
+WITH cte_monthdiffandtotalprice AS (
+    SELECT
+        customer_id,
+        SUM(sales_amount) AS totalsale,
+        MIN(orderdate) AS firstorder,
+        MAX(orderdate) AS lastorder,
+        TIMESTAMPDIFF(MONTH, MIN(orderdate), MAX(orderdate)) AS monthdifference
+    FROM
+        myorderdata1
+    GROUP BY
+        customer_id
+)
+
+--  Segment customers based on thresholds
+SELECT
+    customer_segment,
+    COUNT(customer_id) AS totalcustomers
+FROM (
+    SELECT
+        customer_id,
+        totalsale,
+        monthdifference,
+        CASE
+            WHEN totalsale > 500 AND monthdifference > 50 THEN "vip"
+            WHEN totalsale > 500 AND monthdifference < 50 THEN "regular"
+            ELSE "new"
+        END AS customer_segment
+    FROM
+        cte_monthdiffandtotalprice
+) t
+GROUP BY
+    customer_segment
+ORDER BY
+    totalcustomers DESC;
