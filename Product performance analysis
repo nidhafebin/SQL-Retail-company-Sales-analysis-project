@@ -3,7 +3,6 @@
 -- Description: Compare yearly product sales to average and previous year performance
 -- ========================================
 
--- 🗂️ Use the target database
 USE hey;
 
 -- ========================================
