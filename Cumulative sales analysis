@@ -3,7 +3,7 @@
 -- Description: Monthly total sales, running total, and moving average
 -- ========================================
 
--- 🗂️ Use the target database
+
 USE hey;
 
 --  Preview source tables
