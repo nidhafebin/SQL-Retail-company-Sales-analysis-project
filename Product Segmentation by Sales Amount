@@ -3,7 +3,6 @@
 -- Description: Categorize products into 'low', 'medium', and 'high' segments based on sales
 -- ========================================
 
---  Use the target database
 USE hey;
 
 --  Preview source table
@@ -39,7 +38,7 @@ ORDER BY
 --  Preview source table
 SELECT * FROM myorderdata;
 
--- 🧮 Calculate customer lifetime metrics
+--  Calculate customer lifetime metrics
 WITH cte_monthdiffandtotalprice AS (
     SELECT
         customer_id,
